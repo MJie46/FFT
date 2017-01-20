@@ -15,6 +15,7 @@ f = wave.open("4.wav", "rb")
 # 样频率, 采样点数, 压缩类型, 压缩类型的描述。wave模块只支持非压缩的数据，因此可以忽略最后两个信息
 params = f.getparams()
 nchannels, sampwidth, framerate, nframes = params[:4]
+print nchannels,sampwidth,framerate,nframes
 
 # 读取波形数据
 # 读取声音数据，传递一个参数指定需要读取的长度（以取样点为单位）
@@ -48,57 +49,44 @@ freq = [df*n for n in range(0,N)] #N个元素
 wave_data2=wave_data[0][start:start+N]
 wave_data3=wave_data[1][start:start+N]
 
+
+
 c=numpy.fft.fft(wave_data2)
 c_shift=numpy.fft.fftshift(c)
-# c_shift = c_shift*0.3
+# c_shift = c_shift*12.5
 c_mask = numpy.fft.ifft(numpy.fft.ifftshift(c_shift))
 lpfImg = numpy.real(c_mask)
 
 c1=numpy.fft.fft(wave_data3)
 c_shift1=numpy.fft.fftshift(c1)
-# c_shift1 = c_shift1*0.3
+# c_shift1 = c_shift1*12.5
 c_mask1 = numpy.fft.ifft(numpy.fft.ifftshift(c_shift1))
 lpfImg1 = numpy.real(c_mask1)
 
-# pl.subplot(311)
-# pl.plot(freq,c,'r')
-# pl.subplot(312)
-# pl.plot(freq,lpfImg,'b')
-# pl.subplot(313)
-# pl.plot(freq,lpfImg1*-1,'g')
-# pl.show()
 
-# n = len(lpfImg)+len(lpfImg1)
-n = len(lpfImg)
+n = len(lpfImg)+len(lpfImg1)
 wave45 = numpy.zeros(n, numpy.int16)
-for ind in range(0,len(lpfImg)):
-    wave45[ind] = lpfImg[ind]
-# for ind in range(0,len(lpfImg1)):
-#     wave45[ind*2+1] = c_mask1[ind]
-
-wave45 = wave45.T
-
+wave45[0:n:2] = lpfImg[:]
+wave45[1:n:2] = lpfImg1[:]
 
 # 打开WAV文档
 f = wave.open(r"45.wav", "wb")
 # 配置声道数、量化位数和取样频率
-f.setnchannels(1)
+f.setnchannels(nchannels)
 f.setsampwidth(sampwidth)
 f.setframerate(framerate)
 f.setnframes(nframes)
 # 将wav_data转换为二进制数据写入文件
-aa = wave_data2.tostring()
-bb = wave45.tostring()
-print len(aa)
-print len(bb)
 f.writeframes(wave45.tostring())
 f.close()
 
-pl.subplot(311)
-pl.plot(wave_data2,'r')
-pl.subplot(312)
+pl.subplot(411)
+pl.plot(wave_data1,'r')
+pl.subplot(412)
+pl.plot(wave_data2,'g')
+pl.subplot(413)
 pl.plot(wave_data3,'g')
-pl.subplot(313)
+pl.subplot(414)
 pl.plot(wave45,'b')
 pl.show()
 
